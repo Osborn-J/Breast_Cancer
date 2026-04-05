@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { getPrediction } from './api';
 import { FEATURE_NAMES } from './constants';
 import { 
