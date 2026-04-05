@@ -23,13 +23,14 @@ app.add_middleware(
 # Robust Model Loading
 # This ensures Render finds the .pkl file regardless of the working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "breast_cancer_model.pkl")
+MODEL_PATH = "breast_cancer_model.pkl"
 
 try:
+    # Since Render starts in the 'backend' folder, the file is right there
     model = joblib.load(MODEL_PATH)
-    print("Model loaded successfully!")
+    print("✅ Model loaded successfully!")
 except Exception as e:
-    print(f"Error loading model: {e}")
+    print(f"❌ Error loading model: {e}")
     model = None
 
 class PredictionRequest(BaseModel):
