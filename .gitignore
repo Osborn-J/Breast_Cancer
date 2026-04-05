@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+*.pkl
+
+# Node / React
+node_modules/
+dist/
+.DS_Store
+
+# Large Files
+*.log
