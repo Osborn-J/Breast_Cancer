@@ -7,33 +7,51 @@ import os
 
 app = FastAPI()
 
-# Enable CORS for Vite frontend
+# Get allowed origins from environment variable (Render Dashboard)
+# If not set, it defaults to "*" which is okay for testing but update later!
+raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
+origins = raw_origins.split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, replace with your Vercel URL
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load model (make sure you've run the training script first)
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "breast_cancer_model.pkl")
-model = joblib.load(MODEL_PATH)
+# Robust Model Loading
+# This ensures Render finds the .pkl file regardless of the working directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "breast_cancer_model.pkl")
+
+try:
+    model = joblib.load(MODEL_PATH)
+    print("Model loaded successfully!")
+except Exception as e:
+    print(f"Error loading model: {e}")
+    model = None
 
 class PredictionRequest(BaseModel):
-    # Standard 30 features for Wisconsin Dataset
     features: list[float]
 
 @app.get("/")
 def home():
-    return {"status": "Breast Cancer Detection API is running"}
+    return {
+        "status": "Online",
+        "system": "Breast Cancer Diagnostic API",
+        "model_loaded": model is not None
+    }
 
 @app.post("/predict")
 async def predict(request: PredictionRequest):
+    if model is None:
+        return {"error": "Model not initialized on server"}
+        
     data = np.array(request.features).reshape(1, -1)
     prediction = model.predict(data)
     probability = model.predict_proba(data)
     
-    # 0 is Malignant, 1 is Benign in this dataset
     label = "Malignant" if prediction[0] == 0 else "Benign"
     confidence = float(np.max(probability)) * 100
 
